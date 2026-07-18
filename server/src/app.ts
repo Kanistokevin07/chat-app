@@ -1,6 +1,7 @@
 import express from "express";
 
 import healthRoute from "@/modules/health/health.route.js";
+import authRoute from "@/modules/auth/auth.route.js";
 
 import {notFoundMiddleware} from "@/common/middleware/not-found.middleware.js";
 
@@ -18,12 +19,11 @@ app.use(
     healthRoute
 );
 
-
+app.use("/api/auth", authRoute);
 
 app.use(
     notFoundMiddleware
 );
-
 
 app.use(
     errorMiddleware

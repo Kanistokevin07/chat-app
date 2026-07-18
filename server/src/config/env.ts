@@ -8,6 +8,10 @@ const envSchema = z.object({
     .default("development"),
 
   DATABASE_URL: z.string().min(1),
+  JWT_SECRET:z.string(),
+
+  JWT_EXPIRES_IN:z.string().default("15m"),
+  REDIS_URL: z.string()
 });
 
 export const env = envSchema.parse(process.env);
