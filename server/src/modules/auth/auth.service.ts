@@ -88,7 +88,7 @@ export async function login(data: LoginInput) {
 
     const deviceId = randomUUID();
 
-    const accesstoken = generateAccessToken(user.id);
+    const accessToken = generateAccessToken(user.id);
     const refreshToken = await createSession(user.id, deviceId);
 
     return {
@@ -97,7 +97,7 @@ export async function login(data: LoginInput) {
             username: user.username,
             email: user.email
         },
-        accesstoken,
+        accessToken,
         refreshToken
     };
 }
