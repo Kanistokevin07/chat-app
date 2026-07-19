@@ -1,6 +1,7 @@
 import {Request,Response} from "express";
 import {register} from "./auth.service.js";
 import { login } from "./auth.service.js";
+import { refreshCookieOptions } from "@/config/cookies.js";
 
 export async function registerController(
     req:Request,
@@ -24,8 +25,13 @@ export async function loginController(
 
     const result = await login(req.body);
 
+    res.cookie("refreshToken", result.refreshToken, refreshCookieOptions);
+
     res.status(200).json({
         success: true,
-        data: result
+        data: {
+            user: result.user,
+            accesstoken: result.accesstoken
+        }
     });
 }

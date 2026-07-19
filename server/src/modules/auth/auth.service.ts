@@ -4,9 +4,11 @@ import {RegisterInput} from "./auth.schema.js";
 import { AppError } from "@/common/errors/app-error.js";
 
 import { LoginInput } from "./auth.schema.js";
-import { generateAccessToken } from "./jwt.service.js";
+import { generateAccessToken } from "./services/jwt.service.js";
 
-import { createSession } from "./session.service.js";
+import { randomUUID } from "crypto";
+
+import { createSession } from "./services/session.service.js";
 
 export async function register(
     data:RegisterInput
@@ -84,10 +86,10 @@ export async function login(data: LoginInput) {
         );
     }
 
+    const deviceId = randomUUID();
 
-    const token = generateAccessToken(user.id);
-    const refreshToken = await createSession(user.id);
-
+    const accesstoken = generateAccessToken(user.id);
+    const refreshToken = await createSession(user.id, deviceId);
 
     return {
         user: {
@@ -95,7 +97,7 @@ export async function login(data: LoginInput) {
             username: user.username,
             email: user.email
         },
-        token,
+        accesstoken,
         refreshToken
     };
 }

@@ -25,15 +25,20 @@ model User {
 model RefreshToken {
   id String @id @default(uuid())
 
-  tokenHash String
+  tokenHash String @unique
 
   userId String
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceId String
 
   expiresAt DateTime
 
+  revokedAt DateTime?
+
   createdAt DateTime @default(now())
 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
   @@map("refresh_tokens")
 }
