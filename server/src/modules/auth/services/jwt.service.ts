@@ -7,8 +7,17 @@ export function generateAccessToken(userId: string) {
     };
 
     return jwt.sign(
-        { userId },
+        { sub:userId },
         env.JWT_SECRET,
         options
+    );
+}
+
+export function verifyAccessToken(
+    token:string
+){
+    return jwt.verify(
+        token,
+        env.JWT_SECRET
     );
 }
