@@ -11,10 +11,7 @@ router.post("/login", validate(loginSchema), loginController);
 router.post("/refresh", refreshController);
 router.post("/logout", logoutController);
 
-router.get(
-    "/me",
-    authMiddleware,
-    (req,res)=>{
+router.get("/me", authMiddleware, (req,res)=>{
         res.json({
             success:true,
             user:req.user

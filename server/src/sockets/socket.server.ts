@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
 import { socketAuthMiddleware } from "./socket.auth.js";
+import { addOnlineUser, removeOnlineUser } from "@/modules/presence/presence.service.js";
 
 export function createSocketServer(
     server: HttpServer
@@ -18,24 +19,18 @@ export function createSocketServer(
 
     io.use(socketAuthMiddleware);
 
-    io.on(
-        "connection",
-        (socket)=>{
-            console.log(
-                "User connected",
-                socket.id
-            );
+    io.on("connection", async (socket)=>{
 
-            socket.on(
-                "disconnect",
-                ()=>{
-                    console.log(
-                        "User disconnected",
-                        socket.id
-                    );
+            const userId = socket.data.user.id;
+            await addOnlineUser(userId, socket.id);
+
+            console.log("User connected", socket.id);
+
+            socket.on("disconnect", async()=>{
+                    await removeOnlineUser(userId, socket.id);
+                    console.log("User disconnected", socket.id);
                 }
             );
-
         }
     );
 

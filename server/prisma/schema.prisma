@@ -8,18 +8,28 @@ datasource db {
 }
 
 model User {
-  id String @id @default(uuid())
 
-  username String @unique
-  email String @unique
-  passwordHash String
+    id String @id @default(uuid())
 
-  refreshTokens RefreshToken[]
+    username String @unique
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+    email String @unique
 
-  @@map("users")
+    passwordHash String
+
+    createdAt DateTime @default(now())
+
+    updatedAt DateTime @updatedAt
+
+
+    refreshTokens RefreshToken[]
+
+    conversationMembers ConversationMember[]
+
+    sentMessages Message[]
+
+
+    @@map("users")
 }
 
 model RefreshToken {
@@ -41,4 +51,72 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+enum ConversationType {
+    PRIVATE
+    GROUP
+}
+
+
+model Conversation {
+    id String @id @default(uuid())
+    type ConversationType
+
+    name String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    members ConversationMember[]
+
+    messages Message[]
+
+    @@map("conversations")
+}
+
+
+
+model ConversationMember {
+
+    id String @id @default(uuid())
+
+    conversationId String
+
+    userId String
+
+    role String @default("MEMBER")
+
+    joinedAt DateTime @default(now())
+
+    conversation Conversation @relation(fields:[conversationId],references:[id],onDelete:Cascade)
+
+    user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+
+    @@unique([conversationId,userId])
+
+    @@map("conversation_members")
+}
+
+
+
+
+model Message {
+
+    id String @id @default(uuid())
+
+    conversationId String
+
+    senderId String
+
+    content String
+
+    createdAt DateTime @default(now())
+
+    updatedAt DateTime @updatedAt
+
+    conversation Conversation @relation(fields:[conversationId],references:[id],onDelete:Cascade)
+
+    sender User @relation(fields:[senderId], references:[id], onDelete:Cascade)
+    @@map("messages")
 }
