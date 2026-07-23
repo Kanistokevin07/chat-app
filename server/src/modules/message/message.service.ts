@@ -82,7 +82,8 @@ export async function createMessage(
         data: {
             conversationId,
             senderId,
-            content
+            content,
+            status: "SENT"
         },
         include: {
             sender: {

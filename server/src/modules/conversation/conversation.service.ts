@@ -102,3 +102,20 @@ export async function getUserConversations(
         };
     });
 }
+
+export async function isConversationMember(
+    conversationId: string,
+    userId: string
+) {
+
+    const member =
+        await prisma.conversationMember.findFirst({
+            where:{
+                conversationId,
+                userId
+            }
+        });
+
+
+    return !!member;
+}
