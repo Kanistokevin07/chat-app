@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
 import { socketAuthMiddleware } from "./socket.auth.js";
 import { addOnlineUser, removeOnlineUser } from "@/modules/presence/presence.service.js";
+import { registerMessageHandlers } from "./handlers/message.handler.js";
 
 export function createSocketServer(
     server: HttpServer
@@ -25,6 +26,8 @@ export function createSocketServer(
             await addOnlineUser(userId, socket.id);
 
             console.log("User connected", socket.id);
+
+            registerMessageHandlers(io, socket);
 
             socket.on("disconnect", async()=>{
                     await removeOnlineUser(userId, socket.id);

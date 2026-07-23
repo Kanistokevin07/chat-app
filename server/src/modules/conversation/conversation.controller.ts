@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createPrivateConversation } from "./conversation.service.js";
+import { createPrivateConversation, getUserConversations } from "./conversation.service.js";
 
 export async function createConversationController(
     req: Request,
@@ -21,4 +21,19 @@ export async function createConversationController(
         success: true,
         data: conversation
     });
+}
+
+export async function getConversationsController(
+    req:Request,
+    res:Response
+){
+
+    const userId = req.user!.id;
+    const conversations = await getUserConversations(userId);
+
+    res.json({
+        success:true,
+        data:conversations
+    });
+
 }

@@ -45,3 +45,60 @@ export async function createPrivateConversation(
 
     return conversation;
 }
+
+export async function getUserConversations(
+    userId:string
+){
+
+    const conversations = await prisma.conversation.findMany({
+
+        where:{
+            members:{
+                some:{
+                    userId
+                }
+            }
+        },
+
+        include:{
+            members:{
+                include:{
+                    user:{
+                        select:{
+                            id:true,
+                            username:true,
+                            email:true
+                        }
+                    }
+                }
+            },
+            messages:{
+                orderBy:{
+                    createdAt:"desc"
+                },
+                take:1
+            }
+        },
+        orderBy:{
+            updatedAt:"desc"
+        }
+    });
+
+    return conversations.map((conversation)=>{
+        
+        const otherMember =
+            conversation.members.find(
+                member =>
+                    member.userId !== userId
+            );
+
+        return {
+            id: conversation.id,
+            user: otherMember?.user ?? null,
+            lastMessage:
+                conversation.messages[0] ?? null,
+            updatedAt:
+                conversation.updatedAt
+        };
+    });
+}
