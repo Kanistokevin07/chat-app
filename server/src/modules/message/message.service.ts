@@ -57,6 +57,29 @@ export async function getMessages(
     };
 }
 
+export async function canAccessMessage(
+    messageId: string,
+    userId: string
+) {
+
+    const message =
+        await prisma.message.findFirst({
+            where:{
+                id: messageId,
+
+                conversation:{
+                    members:{
+                        some:{
+                            userId
+                        }
+                    }
+                }
+            }
+        });
+
+    return !!message;
+}
+
 export async function createMessage(
     conversationId: string,
     senderId: string,
@@ -106,4 +129,29 @@ export async function createMessage(
     });
 
     return message;
+}
+
+export async function updateMessageStatus(
+    messageId:string,
+    userId:string,
+    status:"DELIVERED" | "READ"
+){
+
+    const allowed = await canAccessMessage(messageId, userId);
+    if(!allowed){
+        throw new AppError(
+            "You are not allowed to update this message",
+            403,
+            "FORBIDDEN"
+        );
+    }
+
+    return prisma.message.update({
+        where:{
+            id: messageId
+        },
+        data:{
+            status
+        }
+    });
 }
