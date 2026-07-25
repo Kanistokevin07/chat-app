@@ -28,6 +28,10 @@ model User {
 
     sentMessages Message[]
 
+    deliveryReceipts MessageDeliveryReceipt[]
+
+    readReceipts MessageReadReceipt[]
+
 
     @@map("users")
 }
@@ -86,6 +90,7 @@ model ConversationMember {
     userId String
 
     role String @default("MEMBER")
+    unreadCount Int @default(0)
 
     joinedAt DateTime @default(now())
 
@@ -111,7 +116,8 @@ model Message {
 
     content String
 
-    status MessageStatus @default(SENT)
+    readReceipts MessageReadReceipt[]
+    deliveryReceipts MessageDeliveryReceipt[]
 
     createdAt DateTime @default(now())
 
@@ -123,8 +129,33 @@ model Message {
     @@map("messages")
 }
 
-enum MessageStatus {
-  SENT
-  DELIVERED
-  READ
+model MessageReadReceipt {
+
+    id String @id @default(uuid())
+
+    messageId String
+
+    userId String
+
+    readAt DateTime @default(now())
+
+    message Message @relation(fields:[messageId],references:[id],onDelete:Cascade)
+
+    user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+
+    @@unique([messageId,userId])
+}
+
+model MessageDeliveryReceipt {
+
+    id String @id @default(uuid())
+    messageId String
+    userId String
+    deliveredAt DateTime @default(now())
+
+    message Message @relation(fields:[messageId],references:[id],onDelete:Cascade)
+
+    user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+
+    @@unique([messageId,userId])
 }

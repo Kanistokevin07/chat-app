@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createMessage, getMessages } from "./message.service.js";
+import { createMessage, getMessages, markConversationRead } from "./message.service.js";
 
 
 export async function getMessagesController(
@@ -57,5 +57,25 @@ export async function createMessageController(
         success: true,
         data: message
     });
+}
+
+export async function markConversationReadController(
+    req:Request,
+    res:Response
+){
+
+    const userId = req.user!.id;
+    const {conversationId} = req.params;
+
+    if(typeof(conversationId) !== "string"){
+        return res.status(400).json({
+            success:false,
+            message:"Invalid conversation id"
+        });
+    }
+
+    await markConversationRead(conversationId, userId);
+
+    res.json({  success:true});
 }
 

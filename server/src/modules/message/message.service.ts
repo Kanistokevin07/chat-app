@@ -118,6 +118,23 @@ export async function createMessage(
         }
     });
 
+    // Increase unread count for other members
+    await prisma.conversationMember.updateMany({
+        where:{
+            conversationId,
+            userId:{
+                not: senderId
+            }
+
+        },
+
+        data:{
+            unreadCount:{
+                increment:1
+            }
+        }
+    });
+
     // Update conversation's updatedAt so it appears at the top
     await prisma.conversation.update({
         where: {
@@ -154,4 +171,60 @@ export async function updateMessageStatus(
             status
         }
     });
+}
+
+export async function markConversationRead(
+    conversationId: string,
+    userId: string
+) {
+
+    // Verify membership
+    const member = await prisma.conversationMember.findFirst({
+        where:{
+            conversationId,
+            userId
+        }
+    });
+
+    if(!member){
+        throw new AppError(
+            "You are not part of this conversation",
+            403,
+            "FORBIDDEN"
+        );
+    }
+
+    // Mark messages read
+    await prisma.message.updateMany({
+        where:{
+            conversationId,
+            // messages sent by other users
+            senderId:{
+                not:userId
+            },
+
+            status:{
+                not:"READ"
+            }
+        },
+
+        data:{
+            status:"READ"
+        }
+    });
+
+    // Reset unread count
+    await prisma.conversationMember.update({
+        where:{
+            id:member.id
+        },
+
+        data:{
+            unreadCount:0
+        }
+    });
+
+    return {
+        success:true
+    };
 }

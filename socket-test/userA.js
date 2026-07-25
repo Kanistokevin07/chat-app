@@ -6,6 +6,8 @@ const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWNiZTVhY
 const CONVERSATION_ID =
     "f79b641f-f01e-4641-b19b-fa347d344039";
 
+console.log("🚀 userA.js started");
+
 const socket = io("http://localhost:5000", {
     auth: {
         token: ACCESS_TOKEN

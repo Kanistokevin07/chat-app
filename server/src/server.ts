@@ -9,7 +9,7 @@ import { createSocketServer } from "./sockets/socket.server.js";
 const server = http.createServer(app);
 startSessionCleanupJob();
 
-createSocketServer(server);
+await createSocketServer(server);
 
 server.listen(
     env.PORT,

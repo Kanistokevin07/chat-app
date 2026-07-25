@@ -11,6 +11,9 @@ export function socketAuthMiddleware(
         const token = socket.handshake.auth.token;
 
         if(!token){
+             console.log(
+                "Socket auth failed: Token missing"
+            );
             return next(
                 new Error("Authentication token missing")
             );
@@ -24,9 +27,11 @@ export function socketAuthMiddleware(
 
         next();
 
-    }catch(error){
-        next(
-            new Error("Invalid token")
+    }catch(error:any){
+        console.log(
+            "Socket authentication failed:",
+            error.message
         );
+        next(new Error("Invalid token"));
     }
 }

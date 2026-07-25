@@ -6,8 +6,9 @@ import { registerMessageHandlers } from "./handlers/message.handler.js";
 import { registerConversationHandlers } from "./handlers/conversation.handler.js";
 import { registerTypingHandlers } from "./handlers/typing.handler.js";
 import { registerPresenceHandlers } from "./handlers/presence.handler.js";
+import { setupSocketRedisAdapter } from "./socket.redis.js";
 
-export function createSocketServer(
+export async function createSocketServer(
     server: HttpServer
 ){
 
@@ -20,6 +21,8 @@ export function createSocketServer(
             }
         }
     );
+
+    await setupSocketRedisAdapter(io);
 
     io.use(socketAuthMiddleware);
 
