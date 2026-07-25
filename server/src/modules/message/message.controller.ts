@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import { createMessage, getMessages, markConversationRead } from "./message.service.js";
+import { createMessage, getMessages, markConversationRead, createDeliveryReceipt,
+    createReadReceipt
+ } from "./message.service.js";
 
 
 export async function getMessagesController(
@@ -77,5 +79,55 @@ export async function markConversationReadController(
     await markConversationRead(conversationId, userId);
 
     res.json({  success:true});
+}
+
+export async function createDeliveryReceiptController(
+    req: Request,
+    res: Response
+) {
+    const messageId = req.params.messageId;
+    const userId = req.user!.id;
+
+    if (typeof messageId !== "string") {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid message id"
+        });
+    }
+
+    const receipt = await createDeliveryReceipt(
+        messageId,
+        userId
+    );
+
+    res.status(201).json({
+        success: true,
+        data: receipt
+    });
+}
+
+export async function createReadReceiptController(
+    req: Request,
+    res: Response
+) {
+    const messageId = req.params.messageId;
+    const userId = req.user!.id;
+
+    if (typeof messageId !== "string") {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid message id"
+        });
+    }
+
+    const receipt = await createReadReceipt(
+        messageId,
+        userId
+    );
+
+    res.status(201).json({
+        success: true,
+        data: receipt
+    });
 }
 

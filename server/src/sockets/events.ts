@@ -7,7 +7,8 @@ export const SOCKET_EVENTS = {
 
     MESSAGE_DELIVERED: "message_delivered",
     MESSAGE_READ: "message_read",
-    MESSAGE_STATUS_UPDATED: "message_status_updated",
+
+    CONVERSATION_READ: "conversation_read",
 
     TYPING_START: "typing_start",
     TYPING_STOP: "typing_stop",

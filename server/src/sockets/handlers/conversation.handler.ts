@@ -8,9 +8,9 @@ export function registerConversationHandlers(
     socket: Socket
 ){
 
-    socket.on(SOCKET_EVENTS.JOIN_CONVERSATION, (conversationId:string)=>{
+    socket.on(SOCKET_EVENTS.JOIN_CONVERSATION, async (conversationId:string)=>{
 
-        const allowed = isConversationMember(
+        const allowed = await isConversationMember(
             conversationId,
             socket.data.user.id
         );

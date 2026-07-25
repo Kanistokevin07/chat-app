@@ -1,6 +1,7 @@
 import { Socket, Server } from "socket.io";
-import {createMessage} from "@/modules/message/message.service.js";
-import { updateMessageStatus } from "@/modules/message/message.service.js";
+import { createDeliveryReceipt, createMessage, createReadReceipt,
+    markConversationRead
+} from "@/modules/message/message.service.js";
 import { SOCKET_EVENTS } from "../events.js";
 
 export function registerMessageHandlers(
@@ -20,25 +21,35 @@ export function registerMessageHandlers(
         }
     );
 
-    socket.on(SOCKET_EVENTS.MESSAGE_DELIVERED, async(data)=>{
-        const {messageId, conversationID} = data;
-        const message = await updateMessageStatus(messageId, socket.data.user.id, "DELIVERED");
+    socket.on(SOCKET_EVENTS.MESSAGE_DELIVERED, async (data) => {
 
-        io.to(conversationID).emit(SOCKET_EVENTS.MESSAGE_STATUS_UPDATED, {
-            messageId: message.id,
-            status: message.status
-        });
-    });
+            const { messageId, conversationId } = data;
+            const receipt = await createDeliveryReceipt(messageId, socket.data.user.id);
+
+            io.to(conversationId).emit(
+                SOCKET_EVENTS.MESSAGE_DELIVERED,
+                receipt
+            );
+
+        }
+    );
 
 
     socket.on(SOCKET_EVENTS.MESSAGE_READ, async(data)=>{
-        const {messageId, conversationID} = data;
-        const message = await updateMessageStatus(messageId, socket.data.user.id, "READ");
+        const {messageId, conversationId} = data;
+        const receipt = await createReadReceipt(messageId, socket.data.user.id);
 
-        io.to(conversationID).emit(SOCKET_EVENTS.MESSAGE_STATUS_UPDATED, {
-            messageId: message.id,
-            status: message.status
-        });
+        io.to(conversationId).emit(SOCKET_EVENTS.MESSAGE_READ, 
+            receipt
+        );
     });
 
+    socket.on(SOCKET_EVENTS.CONVERSATION_READ, async(conversationId: string)=>{
+        await markConversationRead(conversationId, socket.data.user.id);
+
+        io.to(conversationId).emit(SOCKET_EVENTS.CONVERSATION_READ, {  
+            conversationId,
+            userId: socket.data.user.id 
+        });
+    });
 }

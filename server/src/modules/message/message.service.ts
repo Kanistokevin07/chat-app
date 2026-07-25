@@ -44,6 +44,20 @@ export async function getMessages(
                     id: true,
                     username: true
                 }
+            },
+
+            deliveryReceipts: {
+                select: {
+                    userId: true,
+                    deliveredAt: true
+                }
+            },
+
+            readReceipts: {
+                select: {
+                    userId: true,
+                    readAt: true
+                }
             }
         }
     });
@@ -101,76 +115,160 @@ export async function createMessage(
         );
     }
 
-    const message = await prisma.message.create({
-        data: {
-            conversationId,
-            senderId,
-            content,
-            status: "SENT"
-        },
-        include: {
-            sender: {
-                select: {
-                    id: true,
-                    username: true
+    return prisma.$transaction(async (tx) => {
+
+        const message = await tx.message.create({
+            data: {
+                conversationId,
+                senderId,
+                content
+            },
+            include: {
+                sender: {
+                    select: {
+                        id: true,
+                        username: true
+                    }
+                }
+            }
+        });
+
+        await tx.conversationMember.updateMany({
+            where: {
+                conversationId,
+                userId: {
+                    not: senderId
+                }
+            },
+            data: {
+                unreadCount: {
+                    increment: 1
+                }
+            }
+        });
+
+        await tx.conversation.update({
+            where: {
+                id: conversationId
+            },
+            data: {
+                updatedAt: new Date()
+            }
+        });
+
+        return message;
+
+    });
+}
+
+export async function createDeliveryReceipt(
+    messageId: string,
+    userId: string
+) {
+
+    const message = await prisma.message.findFirst({
+        where: {
+            id: messageId,
+            conversation: {
+                members: {
+                    some: {
+                        userId
+                    }
                 }
             }
         }
     });
 
-    // Increase unread count for other members
-    await prisma.conversationMember.updateMany({
-        where:{
-            conversationId,
-            userId:{
-                not: senderId
-            }
-
-        },
-
-        data:{
-            unreadCount:{
-                increment:1
-            }
-        }
-    });
-
-    // Update conversation's updatedAt so it appears at the top
-    await prisma.conversation.update({
-        where: {
-            id: conversationId
-        },
-        data: {
-            updatedAt: new Date()
-        }
-    });
-
-    return message;
-}
-
-export async function updateMessageStatus(
-    messageId:string,
-    userId:string,
-    status:"DELIVERED" | "READ"
-){
-
-    const allowed = await canAccessMessage(messageId, userId);
-    if(!allowed){
+    if (!message) {
         throw new AppError(
-            "You are not allowed to update this message",
-            403,
-            "FORBIDDEN"
+            "Message not found",
+            404,
+            "NOT_FOUND"
         );
     }
 
-    return prisma.message.update({
-        where:{
-            id: messageId
+    return prisma.messageDeliveryReceipt.upsert({
+        where: {
+            messageId_userId: {
+                messageId,
+                userId
+            }
         },
-        data:{
-            status
+
+        create: {
+            messageId,
+            userId
+        },
+
+        update: {}
+    });
+}
+
+export async function createReadReceipt(
+    messageId: string,
+    userId: string
+) {
+
+    const message = await prisma.message.findFirst({
+        where: {
+            id: messageId,
+            conversation: {
+                members: {
+                    some: {
+                        userId
+                    }
+                }
+            }
+        },
+        select: {
+            id: true,
+            conversationId: true
         }
     });
+
+    if (!message) {
+        throw new AppError(
+            "Message not found",
+            404,
+            "NOT_FOUND"
+        );
+    }
+
+    const receipt = await prisma.$transaction(async (tx) => {
+
+        await tx.messageReadReceipt.upsert({
+            where: {
+                messageId_userId: {
+                    messageId,
+                    userId
+                }
+            },
+
+            create: {
+                messageId,
+                userId
+            },
+
+            update: {}
+        });
+
+        await tx.conversationMember.update({
+            where: {
+                conversationId_userId: {
+                    conversationId: message.conversationId,
+                    userId
+                }
+            },
+
+            data: {
+                unreadCount: 0
+            }
+        });
+
+    });
+
+    return receipt;
+
 }
 
 export async function markConversationRead(
@@ -194,37 +292,51 @@ export async function markConversationRead(
         );
     }
 
-    // Mark messages read
-    await prisma.message.updateMany({
-        where:{
-            conversationId,
-            // messages sent by other users
-            senderId:{
-                not:userId
+    const unreadMessages =
+        await prisma.message.findMany({
+            where: {
+                conversationId,
+                senderId: {
+                    not: userId
+                },
+                readReceipts: {
+                    none: {
+                        userId
+                    }
+                }
             },
 
-            status:{
-                not:"READ"
+            select: {
+                id: true
             }
-        },
+        });
 
-        data:{
-            status:"READ"
-        }
-    });
+    await prisma.$transaction(async (tx) => {
 
-    // Reset unread count
-    await prisma.conversationMember.update({
-        where:{
-            id:member.id
-        },
+        await tx.messageReadReceipt.createMany({
+            data: unreadMessages.map(message => ({
+                messageId: message.id,
+                userId
+            })),
+            skipDuplicates: true
+        });
 
-        data:{
-            unreadCount:0
-        }
+        await tx.conversationMember.update({
+            where: {
+                conversationId_userId: {
+                    conversationId,
+                    userId
+                }
+            },
+
+            data: {
+                unreadCount: 0
+            }
+        });
+
     });
 
     return {
-        success:true
+        success: true
     };
 }
