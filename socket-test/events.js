@@ -8,5 +8,8 @@ export const SOCKET_EVENTS = {
     MESSAGE_STATUS_UPDATED: "message_status_updated",
 
     TYPING_START: "typing_start",
-    TYPING_STOP: "typing_stop"
+    TYPING_STOP: "typing_stop",
+
+    USER_ONLINE: "user_online",
+    USER_OFFLINE: "user_offline"
 };

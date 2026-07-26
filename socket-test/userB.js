@@ -3,7 +3,7 @@ import { SOCKET_EVENTS } from "./events.js";
 
 
 const ACCESS_TOKEN =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YTA3NWFlOC0yMDRjLTRiYjgtYWI5YS0xNmE0YjdhNzkyMTQiLCJpYXQiOjE3ODQ5OTQxNjEsImV4cCI6MTc4NDk5NTk2MX0.OCOc1CxVYXrCxLWrW-afrJg1f_rHyig_cBgmvdjR1So";
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YTA3NWFlOC0yMDRjLTRiYjgtYWI5YS0xNmE0YjdhNzkyMTQiLCJpYXQiOjE3ODUwNzk5NjYsImV4cCI6MTc4NTA5MDc2Nn0.An9FJzfpL9AD3agS45xH5SRnzpFzGTz0h5N3XtwcoGA";
 
 
 const CONVERSATION_ID =
@@ -33,11 +33,7 @@ socket.on("connect",()=>{
         CONVERSATION_ID
     );
 
-});
-
-
-
-socket.on(
+    socket.on(
     SOCKET_EVENTS.NEW_MESSAGE,
     (message)=>{
 
@@ -50,6 +46,17 @@ socket.on(
 
     }
 );
+
+
+    setTimeout(() => {
+
+    console.log("Disconnecting User B");
+
+    socket.disconnect();
+
+}, 10000);
+
+});
 
 socket.on(
     SOCKET_EVENTS.USER_ONLINE,
@@ -71,3 +78,6 @@ socket.on(
         );
     }
 );
+
+
+

@@ -19,7 +19,9 @@ export async function createSocketServer(
             cors:{
                 origin:"http://localhost:5173",
                 credentials:true
-            }
+            },
+            pingInterval:5000,
+            pingTimeout:5000
         }
     );
 
@@ -43,9 +45,15 @@ export async function createSocketServer(
             io.emit(SOCKET_EVENTS.USER_ONLINE, { userId });
 
             socket.on("disconnect", async()=>{
+                    console.log("Disconnect fired", socket.id);
                     const stillOnline =await removeOnlineUser(userId, socket.id);
 
+                    console.log("stillOnline =", stillOnline);
+
                     if(!stillOnline){
+                        console.log("EMITTING USER_OFFLINE", userId);
+
+                        await updateLastSeen(userId);
                         io.emit(SOCKET_EVENTS.USER_OFFLINE, { userId });
                     }
                     console.log("User disconnected", socket.id);

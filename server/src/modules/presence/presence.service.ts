@@ -26,7 +26,7 @@ export async function removeOnlineUser(
             `online:${userId}`
         );
 
-
+    console.log("Remaining sockets:", remaining);
     if(remaining === 0){
 
         await redis.del(
@@ -47,6 +47,18 @@ export async function isUserOnline(
     return count > 0;
 }
 
+export async function getOnlineUsers(
+    userIds:string[]
+){
+    const result:any = {};
+
+    for(const userId of userIds){
+        result[userId] = await isUserOnline(userId);
+    }
+
+    return result;
+}
+
 export async function updateLastSeen(
     userId:string
 ){
@@ -60,3 +72,4 @@ export async function updateLastSeen(
         }
     });
 }
+

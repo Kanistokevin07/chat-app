@@ -3,7 +3,7 @@ import { SOCKET_EVENTS } from "./events.js";
 
 
 const ACCESS_TOKEN =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWNiZTVhYS1hYzUwLTRhMjgtYTE4NC1iODBmZTc1MmFkMTkiLCJpYXQiOjE3ODQ5OTQxOTQsImV4cCI6MTc4NDk5NTk5NH0.nGHjDRzq2yjrPIGvP4TBHsFVLwQQhDlxNy4q-E-URgY";
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWNiZTVhYS1hYzUwLTRhMjgtYTE4NC1iODBmZTc1MmFkMTkiLCJpYXQiOjE3ODUwNzk5ODksImV4cCI6MTc4NTA5MDc4OX0.4wvAvZ1MPhVba2cnDNSENRilnuoKUUMxQMoIFdXRKpY";
 
 
 const CONVERSATION_ID =
@@ -73,40 +73,43 @@ socket.on("connect",()=>{
 
     },6000);
 
+    socket.on(
+        SOCKET_EVENTS.NEW_MESSAGE,
+        (message)=>{
+
+            console.log(
+                "📩 New message"
+            );
+
+            console.log(message);
+
+        }
+    );
+
+
+
+    socket.on(
+        SOCKET_EVENTS.USER_ONLINE,
+        (data)=>{
+            console.log(
+                "ONLINE:",
+                data
+            );
+        }
+    );
+
+
+    socket.on(
+        SOCKET_EVENTS.USER_OFFLINE,
+        (data)=>{
+            console.log(
+                "OFFLINE:",
+                data
+            );
+        }
+    );
+
 
 });
 
 
-socket.on(
-    SOCKET_EVENTS.NEW_MESSAGE,
-    (message)=>{
-
-        console.log(
-            "📩 New message"
-        );
-
-        console.log(message);
-
-    }
-);
-
-socket.on(
-    SOCKET_EVENTS.USER_ONLINE,
-    (data)=>{
-        console.log(
-            "ONLINE:",
-            data
-        );
-    }
-);
-
-
-socket.on(
-    SOCKET_EVENTS.USER_OFFLINE,
-    (data)=>{
-        console.log(
-            "OFFLINE:",
-            data
-        );
-    }
-);

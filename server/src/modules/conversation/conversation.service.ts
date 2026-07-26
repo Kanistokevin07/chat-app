@@ -59,124 +59,108 @@ export async function getUserConversations(
     userId:string
 ){
 
-    const conversations = await prisma.conversation.findMany({
+    const conversations =
+        await prisma.conversation.findMany({
 
-        where:{
-            members:{
-                some:{
-                    userId
-                }
-            }
-        },
-
-        include:{
-            members:{
-                include:{
-                    user:{
-                        select:{
-                            id:true,
-                            username:true,
-                            email:true
-                        }
+            where:{
+                members:{
+                    some:{
+                        userId
                     }
                 }
             },
 
-            messages:{
-                orderBy:{
-                    createdAt:"desc"
+            include:{
+                members:{
+                    include:{
+                        user:{
+                            select:{
+                                id:true,
+                                username:true,
+                                email:true,
+                                lastSeenAt:true
+                            }
+                        }
+                    }
                 },
-                take:1
+
+                messages:{
+                    orderBy:{
+                        createdAt:"desc"
+                    },
+
+                    take:1
+                }
+            },
+
+            orderBy:{
+                updatedAt:"desc"
             }
-        },
-
-        orderBy:{
-            updatedAt:"desc"
-        }
-
-    });
+        });
 
 
-    const result = await Promise.all(
+    const result =
+        await Promise.all(
 
-        conversations.map(async(conversation)=>{
+            conversations.map(
+                async(conversation)=>{
 
-            const myMember =
-                conversation.members.find(
-                    member =>
-                        member.userId === userId
-                );
+                    const myMember =
+                        conversation.members.find(
+                            member =>
+                                member.userId === userId
+                        );
 
+                    const otherMember =
+                        conversation.members.find(
+                            member =>
+                                member.userId !== userId
+                        );
 
-            const otherMember =
-                conversation.members.find(
-                    member =>
-                        member.userId !== userId
-                );
+                    let status = null;
 
+                    if(conversation.type === "PRIVATE" && otherMember){
 
-            let online = false;
+                        const online = await isUserOnline(otherMember.userId);
 
+                        status = {
+                            online,
+                            lastSeenAt: otherMember.user.lastSeenAt
+                        };
+                    }
 
-            if(
-                conversation.type === "PRIVATE" &&
-                otherMember
-            ){
+                    return {
 
-                online = await isUserOnline(
-                    otherMember.userId
-                );
+                        id:conversation.id,
+                        type:conversation.type,
+                        name:conversation.name,
 
-            }
-
-
-            return {
-
-                id:conversation.id,
-
-                type:conversation.type,
-
-                name:conversation.name,
-
-                user:
-                    conversation.type === "PRIVATE"
-                    ? otherMember?.user ?? null
-                    : null,
+                        user:
+                            conversation.type === "PRIVATE"
+                            ?
+                            otherMember?.user ?? null
+                            :
+                            null,
 
 
-                members:
-                    conversation.type === "GROUP"
-                    ?
-                    conversation.members.map(
-                        member => member.user
-                    )
-                    :
-                    undefined,
+                        members:
+                            conversation.type === "GROUP"
+                            ?
+                            conversation.members.map(
+                                member => member.user
+                            )
+                            :
+                            undefined,
 
-
-                lastMessage:
-                    conversation.messages[0] ?? null,
-
-
-                unreadCount:
-                    myMember?.unreadCount ?? 0,
-
-
-                online,
-
-
-                updatedAt:
-                    conversation.updatedAt
-
-            };
-
-        })
-
-    );
-
-
+                        lastMessage: conversation.messages[0] ?? null,
+                        unreadCount: myMember?.unreadCount ?? 0,
+                        status,
+                        updatedAt: conversation.updatedAt
+                    };
+                }
+            )
+        );
     return result;
-
 }
 
 export async function isConversationMember(
