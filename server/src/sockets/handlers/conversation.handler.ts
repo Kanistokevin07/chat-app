@@ -10,9 +10,19 @@ export function registerConversationHandlers(
 
     socket.on(SOCKET_EVENTS.JOIN_CONVERSATION, async (conversationId:string)=>{
 
+        console.log(
+            "JOIN REQUEST",
+            conversationId
+        );
+
         const allowed = await isConversationMember(
             conversationId,
             socket.data.user.id
+        );
+
+        console.log(
+            "ALLOWED",
+            allowed
         );
 
         if(!allowed){
@@ -24,6 +34,12 @@ export function registerConversationHandlers(
 
         console.log(
             `User ${socket.data.user.id} joined ${conversationId}`
+        );
+
+
+        console.log(
+            "ROOM MEMBERS",
+            io.sockets.adapter.rooms.get(conversationId)
         );
     });
 

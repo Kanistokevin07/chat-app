@@ -1,63 +1,112 @@
 import { io } from "socket.io-client";
 import { SOCKET_EVENTS } from "./events.js";
 
-const ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWNiZTVhYS1hYzUwLTRhMjgtYTE4NC1iODBmZTc1MmFkMTkiLCJpYXQiOjE3ODQ5MTIzNjYsImV4cCI6MTc4NDkxMzI2Nn0.a9AnEVitiwd_Ja0GZAdrKNPn730AfrFpenttShATBjQ";
+
+const ACCESS_TOKEN =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmYWNiZTVhYS1hYzUwLTRhMjgtYTE4NC1iODBmZTc1MmFkMTkiLCJpYXQiOjE3ODQ5OTQxOTQsImV4cCI6MTc4NDk5NTk5NH0.nGHjDRzq2yjrPIGvP4TBHsFVLwQQhDlxNy4q-E-URgY";
+
 
 const CONVERSATION_ID =
-    "f79b641f-f01e-4641-b19b-fa347d344039";
+"f79b641f-f01e-4641-b19b-fa347d344039";
 
-console.log("🚀 userA.js started");
 
-const socket = io("http://localhost:5000", {
-    auth: {
-        token: ACCESS_TOKEN
+const socket = io(
+    "http://localhost:5000",
+    {
+        auth:{
+            token:ACCESS_TOKEN
+        }
     }
-});
+);
 
-socket.on("connect", () => {
 
-    console.log("✅ User A connected");
-    console.log(socket.id);
+socket.on("connect",()=>{
+
+    console.log(
+        "✅ User A connected"
+    );
+
 
     socket.emit(
         SOCKET_EVENTS.JOIN_CONVERSATION,
         CONVERSATION_ID
     );
 
-    setTimeout(() => {
+
+    setTimeout(()=>{
+
+
+        console.log(
+            "Sending message 1"
+        );
+
 
         socket.emit(
             SOCKET_EVENTS.SEND_MESSAGE,
             {
-                conversationId: CONVERSATION_ID,
-                content: "Hello from User A 22222"
+                conversationId:CONVERSATION_ID,
+                content:"Offline test message 1"
             }
         );
 
-    }, 3000);
+
+    },3000);
+
+
+
+    setTimeout(()=>{
+
+
+        console.log(
+            "Sending message 2"
+        );
+
+
+        socket.emit(
+            SOCKET_EVENTS.SEND_MESSAGE,
+            {
+                conversationId:CONVERSATION_ID,
+                content:"Offline test message 2"
+            }
+        );
+
+
+    },6000);
+
 
 });
 
+
 socket.on(
     SOCKET_EVENTS.NEW_MESSAGE,
-    (message) => {
+    (message)=>{
 
-        console.log("\n📩 User A received");
+        console.log(
+            "📩 New message"
+        );
+
         console.log(message);
 
     }
 );
 
 socket.on(
-    SOCKET_EVENTS.MESSAGE_STATUS_UPDATED,
-    (data) => {
-
-        console.log("\n✅ Status Updated");
-        console.log(data);
-
+    SOCKET_EVENTS.USER_ONLINE,
+    (data)=>{
+        console.log(
+            "ONLINE:",
+            data
+        );
     }
 );
 
-socket.on("disconnect", () => {
-    console.log("Disconnected");
-});
+
+socket.on(
+    SOCKET_EVENTS.USER_OFFLINE,
+    (data)=>{
+        console.log(
+            "OFFLINE:",
+            data
+        );
+    }
+);

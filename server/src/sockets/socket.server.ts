@@ -1,12 +1,13 @@
 import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
 import { socketAuthMiddleware } from "./socket.auth.js";
-import { addOnlineUser, removeOnlineUser } from "@/modules/presence/presence.service.js";
+import { addOnlineUser, removeOnlineUser, updateLastSeen } from "@/modules/presence/presence.service.js";
 import { registerMessageHandlers } from "./handlers/message.handler.js";
 import { registerConversationHandlers } from "./handlers/conversation.handler.js";
 import { registerTypingHandlers } from "./handlers/typing.handler.js";
 import { registerPresenceHandlers } from "./handlers/presence.handler.js";
 import { setupSocketRedisAdapter } from "./socket.redis.js";
+import { SOCKET_EVENTS } from "./events.js";
 
 export async function createSocketServer(
     server: HttpServer
@@ -30,6 +31,7 @@ export async function createSocketServer(
 
             const userId = socket.data.user.id;
             await addOnlineUser(userId, socket.id);
+            await updateLastSeen(userId);
 
             console.log("User connected", socket.id);
 
@@ -38,8 +40,14 @@ export async function createSocketServer(
             registerTypingHandlers(io, socket);
             registerPresenceHandlers(io, socket);
 
+            io.emit(SOCKET_EVENTS.USER_ONLINE, { userId });
+
             socket.on("disconnect", async()=>{
-                    await removeOnlineUser(userId, socket.id);
+                    const stillOnline =await removeOnlineUser(userId, socket.id);
+
+                    if(!stillOnline){
+                        io.emit(SOCKET_EVENTS.USER_OFFLINE, { userId });
+                    }
                     console.log("User disconnected", socket.id);
                 }
             );

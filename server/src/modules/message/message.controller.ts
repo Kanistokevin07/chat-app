@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { createMessage, getMessages, markConversationRead, createDeliveryReceipt,
     createReadReceipt
  } from "./message.service.js";
+ import { getMissedMessages } from "./message.sync.service.js";
 
 
 export async function getMessagesController(
@@ -38,27 +39,32 @@ export async function createMessageController(
     req: Request,
     res: Response
 ) {
-    const conversationId = req.params.conversationId;
-    const senderId = req.user!.id;
-    const { content } = req.body;
 
-    if(typeof(conversationId) !== "string"){
-        return res.status(400).json({
-            success:false,
-            message:"Invalid conversation id"
+    
+
+        const conversationId = req.params.conversationId;
+        const senderId = req.user!.id;
+        const { content } = req.body;
+
+        if(typeof(conversationId) !== "string"){
+            return res.status(400).json({
+                success:false,
+                message:"Invalid conversation id"
+            });
+        }
+
+        const message = await createMessage(
+            conversationId,
+            senderId,
+            content
+        );
+
+
+        res.status(201).json({
+            success: true,
+            data: message
         });
-    }
 
-    const message = await createMessage(
-        conversationId,
-        senderId,
-        content
-    );
-
-    res.status(201).json({
-        success: true,
-        data: message
-    });
 }
 
 export async function markConversationReadController(
@@ -131,3 +137,28 @@ export async function createReadReceiptController(
     });
 }
 
+export async function syncMessagesController(
+    req:Request,
+    res:Response
+){
+
+    const conversationId = req.params.conversationId;
+    const userId = req.user!.id;
+
+    if(typeof(conversationId) !== "string"){
+        return res.status(400).json({
+            success:false,
+            message:"Invalid conversation id"
+        });
+    }
+    const messages = await getMissedMessages(
+        conversationId,
+        userId
+    );
+
+    res.json({
+        success:true,
+        data:messages
+    });
+
+}

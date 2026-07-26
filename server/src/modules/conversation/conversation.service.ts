@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma.js";
+import { isUserOnline } from "@/modules/presence/presence.service.js";
 
 export async function createPrivateConversation(
     userId: string,
@@ -33,8 +34,16 @@ export async function createPrivateConversation(
             type: "PRIVATE",
             members: {
                 create: [
-                    { userId },
-                    { userId: otherUserId }
+                    { 
+                        userId,
+                        lastReadAt:new Date(),
+                        lastSeenAt:new Date()
+                    },
+                    { 
+                        userId: otherUserId,
+                        lastReadAt:new Date(),
+                        lastSeenAt:new Date()
+                    }
                 ]
             }
         },
@@ -72,6 +81,7 @@ export async function getUserConversations(
                     }
                 }
             },
+
             messages:{
                 orderBy:{
                     createdAt:"desc"
@@ -79,28 +89,94 @@ export async function getUserConversations(
                 take:1
             }
         },
+
         orderBy:{
             updatedAt:"desc"
         }
+
     });
 
-    return conversations.map((conversation)=>{
-        
-        const otherMember =
-            conversation.members.find(
-                member =>
-                    member.userId !== userId
-            );
 
-        return {
-            id: conversation.id,
-            user: otherMember?.user ?? null,
-            lastMessage:
-                conversation.messages[0] ?? null,
-            updatedAt:
-                conversation.updatedAt
-        };
-    });
+    const result = await Promise.all(
+
+        conversations.map(async(conversation)=>{
+
+            const myMember =
+                conversation.members.find(
+                    member =>
+                        member.userId === userId
+                );
+
+
+            const otherMember =
+                conversation.members.find(
+                    member =>
+                        member.userId !== userId
+                );
+
+
+            let online = false;
+
+
+            if(
+                conversation.type === "PRIVATE" &&
+                otherMember
+            ){
+
+                online = await isUserOnline(
+                    otherMember.userId
+                );
+
+            }
+
+
+            return {
+
+                id:conversation.id,
+
+                type:conversation.type,
+
+                name:conversation.name,
+
+                user:
+                    conversation.type === "PRIVATE"
+                    ? otherMember?.user ?? null
+                    : null,
+
+
+                members:
+                    conversation.type === "GROUP"
+                    ?
+                    conversation.members.map(
+                        member => member.user
+                    )
+                    :
+                    undefined,
+
+
+                lastMessage:
+                    conversation.messages[0] ?? null,
+
+
+                unreadCount:
+                    myMember?.unreadCount ?? 0,
+
+
+                online,
+
+
+                updatedAt:
+                    conversation.updatedAt
+
+            };
+
+        })
+
+    );
+
+
+    return result;
+
 }
 
 export async function isConversationMember(

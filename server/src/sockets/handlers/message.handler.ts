@@ -16,6 +16,17 @@ export function registerMessageHandlers(
                 userId,
                 data.content
             );
+
+            console.log(
+    "EMITTING TO ROOM",
+    data.conversationId
+);
+
+console.log(
+    io.sockets.adapter.rooms.get(
+        data.conversationId
+    )
+);
             
             io.to(data.conversationId).emit(SOCKET_EVENTS.NEW_MESSAGE, message);
         }

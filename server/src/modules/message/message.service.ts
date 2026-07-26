@@ -121,7 +121,7 @@ export async function createMessage(
             data: {
                 conversationId,
                 senderId,
-                content
+                content,
             },
             include: {
                 sender: {
@@ -236,7 +236,7 @@ export async function createReadReceipt(
 
     const receipt = await prisma.$transaction(async (tx) => {
 
-        await tx.messageReadReceipt.upsert({
+        const readReceipt = await tx.messageReadReceipt.upsert({
             where: {
                 messageId_userId: {
                     messageId,
@@ -264,7 +264,7 @@ export async function createReadReceipt(
                 unreadCount: 0
             }
         });
-
+        return readReceipt;
     });
 
     return receipt;
@@ -330,7 +330,8 @@ export async function markConversationRead(
             },
 
             data: {
-                unreadCount: 0
+                unreadCount: 0,
+                lastReadAt: new Date()
             }
         });
 
