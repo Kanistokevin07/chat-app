@@ -90,7 +90,7 @@ model ConversationMember {
 
     userId String
 
-    role String @default("MEMBER")
+    role MemberRole @default(MEMBER)
     unreadCount Int @default(0)
 
     joinedAt DateTime @default(now())
@@ -111,7 +111,10 @@ model ConversationMember {
     @@map("conversation_members")
 }
 
-
+enum MemberRole{
+    ADMIN
+    MEMBER
+}
 
 
 model Message {

@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import { createPrivateConversation, getUserConversations } from "./conversation.service.js";
+import { createGroupConversation, createPrivateConversation, getUserConversations,
+    addGroupMember, removeGroupMember, leaveGroup, demoteMember, promoteMember
+ } from "./conversation.service.js";
 
 export async function createConversationController(
     req: Request,
@@ -34,6 +36,174 @@ export async function getConversationsController(
     res.json({
         success:true,
         data:conversations
+    });
+}
+
+export async function createGroupController(
+    req: Request,
+    res: Response
+){
+    const user = req.user!.id;
+    const {name, members} = req.body;
+
+    const conversation = await createGroupConversation(user, name, members);
+
+    res.status(201).json({
+        success: true,
+        data: conversation
+    });
+}
+
+export async function addMemberController(
+    req:Request,
+    res:Response
+){
+
+    const requesterId=req.user!.id;
+    const conversationId=req.params.conversationId;
+    const {userId}=req.body;
+
+    if(typeof(conversationId) !== "string"){
+        return res.status(400).json({
+            success: false,
+            data: "Invalid type"
+        });
+    }
+
+    const member = await addGroupMember(
+        conversationId,
+        requesterId,
+        userId
+    );
+
+
+    res.status(201).json({
+        success:true,
+        data:member
+    });
+}
+
+export async function removeMemberController(
+    req:Request,
+    res:Response
+){
+    if(typeof(req.params.conversationId) !== "string"){
+        return res.status(400).json({
+            success: false,
+            data: "convoId must be string"
+        })
+    }
+
+    if(typeof(req.params.userId) !== "string"){
+        return res.status(400).json({
+            success: false,
+            data: "UserId must be string"
+        })
+    }
+
+    await removeGroupMember(
+        req.params.conversationId,
+        req.user!.id,
+        req.params.userId
+    );
+    res.json({
+        success:true
+    });
+}
+
+export async function leaveGroupController(
+    req:Request,
+    res:Response
+){
+
+    if(typeof req.params.conversationId !== "string"){
+        return res.status(400).json({
+            success:false,
+            data:"Invalid conversation id"
+        });
+    }
+
+
+    await leaveGroup(
+        req.params.conversationId,
+        req.user!.id
+    );
+
+
+    res.json({
+        success:true
+    });
+
+}   
+
+export async function promoteMemberController(
+    req:Request,
+    res:Response
+){
+
+    if(typeof req.params.conversationId !== "string"){
+        return res.status(400).json({
+            success:false,
+            data:"Invalid conversation id"
+        });
+    }
+
+
+    if(typeof req.params.userId !== "string"){
+        return res.status(400).json({
+            success:false,
+            data:"Invalid user id"
+        });
+    }
+
+
+    const member =
+        await promoteMember(
+            req.params.conversationId,
+            req.user!.id,
+            req.params.userId
+        );
+
+
+    res.json({
+        success:true,
+        data:member
+    });
+
+}
+
+export async function demoteMemberController(
+    req:Request,
+    res:Response
+){
+
+    if(typeof req.params.conversationId !== "string"){
+        return res.status(400).json({
+            success:false,
+            data:"Invalid conversation id"
+        });
+    }
+
+
+    if(typeof req.params.userId !== "string"){
+        return res.status(400).json({
+            success:false,
+            data:"Invalid user id"
+        });
+    }
+
+
+    const member =
+        await demoteMember(
+            req.params.conversationId,
+            req.user!.id,
+            req.params.userId
+        );
+
+
+    res.json({
+        success:true,
+        data:member
     });
 
 }
