@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { createMessage, getMessages, markConversationRead, createDeliveryReceipt,
-    createReadReceipt
+    createReadReceipt,
+    deleteMessage,
+    editMessage
  } from "./message.service.js";
  import { getMissedMessages } from "./message.sync.service.js";
 
@@ -161,4 +163,61 @@ export async function syncMessagesController(
         data:messages
     });
 
+}
+
+export async function editMessageController(
+    req:Request,
+    res:Response
+){
+
+    const userId=req.user!.id;
+
+    const {messageId}=req.params;
+    const {content}=req.body;
+
+    if(typeof(messageId) !== "string"){
+        return res.status(400).json({
+            success:false,
+            message:"Invalid message id"
+        });
+    }
+
+
+    const message =
+        await editMessage(
+            messageId,
+            userId,
+            content
+        );
+
+    res.json({
+        success:true,
+        data:message
+    });
+}
+
+
+export async function deleteMessageController(
+    req:Request,
+    res:Response
+){
+
+    const userId=req.user!.id;
+    const {messageId}=req.params;
+
+    if(typeof(messageId) !== "string"){
+        return res.status(400).json({
+            success:false,
+            message:"Invalid message id"
+        });
+    }
+
+    await deleteMessage(
+        messageId,
+        userId
+    );
+
+    res.json({
+        success:true
+    });
 }

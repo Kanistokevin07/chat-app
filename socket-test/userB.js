@@ -3,11 +3,11 @@ import { SOCKET_EVENTS } from "./events.js";
 
 
 const ACCESS_TOKEN =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YTA3NWFlOC0yMDRjLTRiYjgtYWI5YS0xNmE0YjdhNzkyMTQiLCJpYXQiOjE3ODUwNzk5NjYsImV4cCI6MTc4NTA5MDc2Nn0.An9FJzfpL9AD3agS45xH5SRnzpFzGTz0h5N3XtwcoGA";
+"YOUR_USER_B_TOKEN";
 
 
 const CONVERSATION_ID =
-"f79b641f-f01e-4641-b19b-fa347d344039";
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YTA3NWFlOC0yMDRjLTRiYjgtYWI5YS0xNmE0YjdhNzkyMTQiLCJpYXQiOjE3ODUwODM4MTUsImV4cCI6MTc4NTA5NDYxNX0.ikgqVGSmAW0ad9_VvoIsAzENJ5P_Xy1h1EvIbtYAydo";
 
 
 const socket = io(
@@ -23,9 +23,8 @@ const socket = io(
 
 socket.on("connect",()=>{
 
-    console.log(
-        "✅ User B connected"
-    );
+    console.log("✅ User B connected");
+    console.log(socket.id);
 
 
     socket.emit(
@@ -33,51 +32,89 @@ socket.on("connect",()=>{
         CONVERSATION_ID
     );
 
-    socket.on(
+});
+
+
+
+socket.on(
     SOCKET_EVENTS.NEW_MESSAGE,
     (message)=>{
 
         console.log(
-            "📩 User B received"
+            "📩 User B received message"
         );
 
         console.log(message);
 
+    }
+);
+
+
+
+socket.on(
+    SOCKET_EVENTS.TYPING_START,
+    (data)=>{
+
+        console.log(
+            "✍️ User B sees typing:",
+            data
+        );
 
     }
 );
 
 
-    setTimeout(() => {
 
-    console.log("Disconnecting User B");
+socket.on(
+    SOCKET_EVENTS.TYPING_STOP,
+    (data)=>{
 
-    socket.disconnect();
+        console.log(
+            "🛑 User B sees stopped:",
+            data
+        );
 
-}, 10000);
+    }
+);
 
-});
+
 
 socket.on(
     SOCKET_EVENTS.USER_ONLINE,
     (data)=>{
+
         console.log(
             "ONLINE:",
             data
         );
+
     }
 );
+
 
 
 socket.on(
     SOCKET_EVENTS.USER_OFFLINE,
     (data)=>{
+
         console.log(
             "OFFLINE:",
             data
         );
+
     }
 );
 
 
 
+socket.on(
+    "connect_error",
+    (err)=>{
+
+        console.log(
+            "Connection error:",
+            err.message
+        );
+
+    }
+);

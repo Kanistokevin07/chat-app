@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma.js";
 
 export async function getMissedMessages(
     conversationId:string,
-    userId:string
+    userId:string,
+    limit:number = 50
 ){
 
     const member =
@@ -30,9 +31,9 @@ export async function getMissedMessages(
             where:{
                 conversationId,
 
-                ...(member.lastReadAt && {
+                ...(member.lastSeenAt && {
                     createdAt:{
-                        gt:member.lastReadAt
+                        gt:member.lastSeenAt
                     }
                 })
             },
@@ -42,12 +43,26 @@ export async function getMissedMessages(
                 createdAt:"asc"
             },
 
+            take:limit,
 
             include:{
                 sender:{
                     select:{
                         id:true,
                         username:true
+                    }
+                },
+                deliveryReceipts:{
+                    select:{
+                        userId:true,
+                        deliveredAt:true
+                    }
+                },
+
+                readReceipts:{
+                    select:{
+                        userId:true,
+                        readAt:true
                     }
                 }
             }

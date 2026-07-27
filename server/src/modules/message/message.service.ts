@@ -341,3 +341,101 @@ export async function markConversationRead(
         success: true
     };
 }
+
+export async function editMessage(
+    messageId:string,
+    userId:string,
+    content:string
+){
+
+    const message =
+        await prisma.message.findUnique({
+            where:{
+                id:messageId
+            }
+        });
+
+
+    if(!message){
+        throw new AppError(
+            "Message not found",
+            404,
+            "NOT_FOUND"
+        );
+    }
+
+
+    if(message.senderId !== userId){
+        throw new AppError(
+            "You cannot edit this message",
+            403,
+            "FORBIDDEN"
+        );
+    }
+
+
+    return prisma.message.update({
+
+        where:{
+            id:messageId
+        },
+
+        data:{
+            content,
+            editedAt:new Date()
+        },
+
+        include:{
+            sender:{
+                select:{
+                    id:true,
+                    username:true
+                }
+            }
+        }
+    });
+}
+
+export async function deleteMessage(
+    messageId:string,
+    userId:string
+){
+
+    const message =
+        await prisma.message.findUnique({
+            where:{
+                id:messageId
+            }
+        });
+
+
+    if(!message){
+        throw new AppError(
+            "Message not found",
+            404,
+            "NOT_FOUND"
+        );
+    }
+
+
+    if(message.senderId !== userId){
+        throw new AppError(
+            "You cannot delete this message",
+            403,
+            "FORBIDDEN"
+        );
+    }
+
+
+    return prisma.message.update({
+
+        where:{
+            id:messageId
+        },
+
+        data:{
+            deletedAt: new Date(),
+            content:""
+        }
+    });
+}

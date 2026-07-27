@@ -124,6 +124,10 @@ model Message {
 
     content String
 
+    deletedAt DateTime?
+
+    editedAt DateTime?
+
     readReceipts MessageReadReceipt[]
     deliveryReceipts MessageDeliveryReceipt[]
 

@@ -22,9 +22,8 @@ const socket = io(
 
 socket.on("connect",()=>{
 
-    console.log(
-        "✅ User A connected"
-    );
+    console.log("✅ User A connected");
+    console.log(socket.id);
 
 
     socket.emit(
@@ -35,17 +34,13 @@ socket.on("connect",()=>{
 
     setTimeout(()=>{
 
-
-        console.log(
-            "Sending message 1"
-        );
+        console.log("✍️ User A typing...");
 
 
         socket.emit(
-            SOCKET_EVENTS.SEND_MESSAGE,
+            SOCKET_EVENTS.TYPING_START,
             {
-                conversationId:CONVERSATION_ID,
-                content:"Offline test message 1"
+                conversationId:CONVERSATION_ID
             }
         );
 
@@ -56,60 +51,102 @@ socket.on("connect",()=>{
 
     setTimeout(()=>{
 
-
-        console.log(
-            "Sending message 2"
-        );
+        console.log("🛑 User A stopped typing");
 
 
         socket.emit(
-            SOCKET_EVENTS.SEND_MESSAGE,
+            SOCKET_EVENTS.TYPING_STOP,
             {
-                conversationId:CONVERSATION_ID,
-                content:"Offline test message 2"
+                conversationId:CONVERSATION_ID
             }
         );
 
 
     },6000);
 
-    socket.on(
-        SOCKET_EVENTS.NEW_MESSAGE,
-        (message)=>{
-
-            console.log(
-                "📩 New message"
-            );
-
-            console.log(message);
-
-        }
-    );
 
 
+    setTimeout(()=>{
 
-    socket.on(
-        SOCKET_EVENTS.USER_ONLINE,
-        (data)=>{
-            console.log(
-                "ONLINE:",
-                data
-            );
-        }
-    );
+        console.log("Sending message");
 
 
-    socket.on(
-        SOCKET_EVENTS.USER_OFFLINE,
-        (data)=>{
-            console.log(
-                "OFFLINE:",
-                data
-            );
-        }
-    );
+        socket.emit(
+            SOCKET_EVENTS.SEND_MESSAGE,
+            {
+                conversationId:CONVERSATION_ID,
+                content:"Hello from User A"
+            }
+        );
 
+
+    },8000);
 
 });
 
 
+
+socket.on(
+    SOCKET_EVENTS.NEW_MESSAGE,
+    (message)=>{
+
+        console.log(
+            "📩 User A received"
+        );
+
+        console.log(message);
+
+    }
+);
+
+
+socket.on(
+    SOCKET_EVENTS.TYPING_START,
+    (data)=>{
+
+        console.log(
+            "Typing event received:",
+            data
+        );
+
+    }
+);
+
+
+socket.on(
+    SOCKET_EVENTS.TYPING_STOP,
+    (data)=>{
+
+        console.log(
+            "Typing stop received:",
+            data
+        );
+
+    }
+);
+
+
+socket.on(
+    SOCKET_EVENTS.USER_ONLINE,
+    (data)=>{
+
+        console.log(
+            "ONLINE:",
+            data
+        );
+
+    }
+);
+
+
+socket.on(
+    SOCKET_EVENTS.USER_OFFLINE,
+    (data)=>{
+
+        console.log(
+            "OFFLINE:",
+            data
+        );
+
+    }
+);
