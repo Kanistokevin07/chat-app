@@ -3,118 +3,161 @@ import { SOCKET_EVENTS } from "./events.js";
 
 
 const ACCESS_TOKEN =
-"YOUR_USER_B_TOKEN";
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YTA3NWFlOC0yMDRjLTRiYjgtYWI5YS0xNmE0YjdhNzkyMTQiLCJpYXQiOjE3ODUxNTk2NTMsImV4cCI6MTc4NTE3MDQ1M30.knHARKtXZ_JPysz493muiVXScrexD_ArhWqax63Qz5k";
 
 
 const CONVERSATION_ID =
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4YTA3NWFlOC0yMDRjLTRiYjgtYWI5YS0xNmE0YjdhNzkyMTQiLCJpYXQiOjE3ODUwODM4MTUsImV4cCI6MTc4NTA5NDYxNX0.ikgqVGSmAW0ad9_VvoIsAzENJ5P_Xy1h1EvIbtYAydo";
+"f79b641f-f01e-4641-b19b-fa347d344039";
+
 
 
 const socket = io(
-    "http://localhost:5000",
-    {
-        auth:{
-            token:ACCESS_TOKEN
-        }
-    }
+"http://localhost:5000",
+{
+    auth:{
+        token:ACCESS_TOKEN
+    },
+    reconnection:false
+});
+
+
+
+
+socket.on(
+"connect",
+()=>{
+
+
+console.log(
+"USER B CONNECTED",
+socket.id
 );
 
 
 
-socket.on("connect",()=>{
+setTimeout(()=>{
 
-    console.log("✅ User B connected");
-    console.log(socket.id);
+        console.log(
+            "USER B JOINING ROOM"
+        );
 
 
-    socket.emit(
-        SOCKET_EVENTS.JOIN_CONVERSATION,
-        CONVERSATION_ID
-    );
+        socket.emit(
+            SOCKET_EVENTS.JOIN_CONVERSATION,
+            CONVERSATION_ID
+        );
+
+
+    },1000);
+
 
 });
 
 
 
-socket.on(
-    SOCKET_EVENTS.NEW_MESSAGE,
-    (message)=>{
-
-        console.log(
-            "📩 User B received message"
-        );
-
-        console.log(message);
-
-    }
-);
-
 
 
 socket.on(
-    SOCKET_EVENTS.TYPING_START,
-    (data)=>{
+SOCKET_EVENTS.NEW_MESSAGE,
+(message)=>{
 
-        console.log(
-            "✍️ User B sees typing:",
-            data
-        );
 
-    }
+console.log(
+"\nB NEW MESSAGE"
 );
+
+
+console.log(message);
+
+
+});
+
+
 
 
 
 socket.on(
-    SOCKET_EVENTS.TYPING_STOP,
-    (data)=>{
+SOCKET_EVENTS.MESSAGE_EDITED,
+(message)=>{
 
-        console.log(
-            "🛑 User B sees stopped:",
-            data
-        );
 
-    }
+console.log(
+"\nB MESSAGE EDITED"
 );
+
+
+console.log(message);
+
+
+});
+
+
 
 
 
 socket.on(
-    SOCKET_EVENTS.USER_ONLINE,
-    (data)=>{
+SOCKET_EVENTS.MESSAGE_DELETED,
+(message)=>{
 
-        console.log(
-            "ONLINE:",
-            data
-        );
 
-    }
+console.log(
+"\nB MESSAGE DELETED"
 );
+
+
+console.log(message);
+
+
+});
+
+
 
 
 
 socket.on(
-    SOCKET_EVENTS.USER_OFFLINE,
-    (data)=>{
+SOCKET_EVENTS.TYPING_START,
+(data)=>{
 
-        console.log(
-            "OFFLINE:",
-            data
-        );
 
-    }
+console.log(
+"\nB TYPING START"
 );
+
+
+console.log(data);
+
+
+});
+
+
 
 
 
 socket.on(
-    "connect_error",
-    (err)=>{
+SOCKET_EVENTS.TYPING_STOP,
+(data)=>{
 
-        console.log(
-            "Connection error:",
-            err.message
-        );
 
-    }
+console.log(
+"\nB TYPING STOP"
 );
+
+
+console.log(data);
+
+
+});
+
+
+
+
+
+socket.on(
+"connect_error",
+err=>{
+
+console.log(
+err.message
+);
+
+});
