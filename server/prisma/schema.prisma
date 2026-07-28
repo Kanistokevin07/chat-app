@@ -97,6 +97,8 @@ model ConversationMember {
 
     lastReadAt DateTime?
 
+    leftAt DateTime?
+
     lastSeenAt DateTime?
 
     conversation Conversation @relation(fields:[conversationId],references:[id],onDelete:Cascade)

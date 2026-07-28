@@ -18,4 +18,11 @@ export const SOCKET_EVENTS = {
 
     MESSAGE_EDITED:"message_edited",
     MESSAGE_DELETED:"message_deleted",
+
+    GROUP_MEMBER_ADDED:"group_member_added",
+    GROUP_MEMBER_REMOVED:"group_member_removed",
+    GROUP_MEMBER_LEFT:"group_member_left",
+    GROUP_ROLE_UPDATED:"group_role_updated",
+    NEW_GROUP: "new_group",
+    REMOVED_FROM_GROUP: "removed_from_group"
 } as const;

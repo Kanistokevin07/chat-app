@@ -9,6 +9,7 @@ import { registerPresenceHandlers } from "./handlers/presence.handler.js";
 import { setupSocketRedisAdapter } from "./socket.redis.js";
 import { SOCKET_EVENTS } from "./events.js";
 import { logger } from "@/config/logger.js";
+import { setIO } from "./socket.js";
 
 const log = logger.child({
     module: "socket-server"
@@ -31,23 +32,31 @@ export async function createSocketServer(
         }
     );
 
+    setIO(io);
+
     //await setupSocketRedisAdapter(io);
 
     io.use(socketAuthMiddleware);
     io.use((socket, next) => {
-    log.info({
-        socketId: socket.id,
-        userId: socket.data.user?.id
-    }, "NEW SOCKET");
+        log.info({
+            socketId: socket.id,
+            userId: socket.data.user?.id
+        }, "NEW SOCKET");
 
-    next();
-});
+        next();
+    });
 
     io.on("connection", async (socket)=>{
 
             const userId = socket.data.user.id;
             await addOnlineUser(userId, socket.id);
             await updateLastSeen(userId);
+
+            socket.join(userId);
+            logger.info({
+                userId,
+                socketId:socket.id
+            },"USER JOINED PERSONAL ROOM");
 
             log.info({
                 socketId: socket.id,

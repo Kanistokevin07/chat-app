@@ -67,12 +67,16 @@ export async function getUserConversations(
             where:{
                 members:{
                     some:{
-                        userId
+                        userId,
+                        leftAt:null
                     }
                 }
             },
 
             include:{
+                where:{
+                    leftAt: null
+                },
                 members:{
                     include:{
                         user:{
@@ -174,7 +178,8 @@ export async function isConversationMember(
         await prisma.conversationMember.findFirst({
             where:{
                 conversationId,
-                userId
+                userId,
+                leftAt: null
             }
         });
 
@@ -244,6 +249,34 @@ export async function addGroupMember(
         throw new Error("Cant add members to private chat");
     }
 
+    const existing = await prisma.conversationMember.findUnique({
+        where:{
+            conversationId_userId:{
+                conversationId,
+                userId:newUserId
+            }
+        }
+    });
+
+
+    if(existing){
+
+        return prisma.conversationMember.update({
+            where:{
+                conversationId_userId:{
+                    conversationId,
+                    userId:newUserId
+                }
+            },
+            data:{
+                leftAt:null,
+                role:"MEMBER",
+                joinedAt:new Date()
+            }
+        });
+
+    }
+
     return prisma.conversationMember.create({
         data:{
             conversationId,
@@ -252,7 +285,8 @@ export async function addGroupMember(
             lastReadAt:new Date(),
             lastSeenAt:new Date()
         }
-    })
+    });
+
 }
 
 export async function removeGroupMember(
@@ -278,14 +312,17 @@ export async function removeGroupMember(
         );
     }
 
-    return prisma.conversationMember.delete({
+    return prisma.conversationMember.update({
         where:{
             conversationId_userId:{
-            conversationId,
-            userId:removeUserId
+                conversationId,
+                userId:removeUserId
             }
-        }
-    });
+        },
+        data:{
+            leftAt:new Date()
+            }
+        });
 }
 
 export async function leaveGroup(
@@ -311,12 +348,15 @@ export async function leaveGroup(
     }
 
 
-    return prisma.conversationMember.delete({
+    return prisma.conversationMember.update({
         where:{
             conversationId_userId:{
                 conversationId,
                 userId
             }
+        },
+        data:{
+            leftAt: new Date(),
         }
     });
 

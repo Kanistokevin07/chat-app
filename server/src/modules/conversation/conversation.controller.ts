@@ -3,6 +3,9 @@ import { createGroupConversation, createPrivateConversation, getUserConversation
     addGroupMember, removeGroupMember, leaveGroup, demoteMember, promoteMember
  } from "./conversation.service.js";
 
+import { getIO } from "@/sockets/socket.js"
+import { SOCKET_EVENTS } from "@/sockets/events.js";
+
 export async function createConversationController(
     req: Request,
     res: Response
@@ -76,6 +79,18 @@ export async function addMemberController(
         userId
     );
 
+    const io = getIO();
+
+    io.to(conversationId).emit(SOCKET_EVENTS.GROUP_MEMBER_ADDED,{
+        conversationId,
+        userId,
+        role: "Member"
+    });
+
+    io.to(userId).emit(SOCKET_EVENTS.NEW_GROUP, {
+        conversationId
+    });
+
 
     res.status(201).json({
         success:true,
@@ -87,7 +102,11 @@ export async function removeMemberController(
     req:Request,
     res:Response
 ){
-    if(typeof(req.params.conversationId) !== "string"){
+
+    const conversationId = req.params.conversationId;
+    const userId = req.params.userId;
+
+    if(typeof(conversationId) !== "string"){
         return res.status(400).json({
             success: false,
             data: "convoId must be string"
@@ -102,10 +121,26 @@ export async function removeMemberController(
     }
 
     await removeGroupMember(
-        req.params.conversationId,
+        conversationId,
         req.user!.id,
         req.params.userId
     );
+
+    const io=getIO();
+
+
+    io.to(conversationId)
+        .emit(SOCKET_EVENTS.GROUP_MEMBER_REMOVED,{
+            conversationId,
+            userId
+        }
+    );
+
+    io.to(userId).emit(SOCKET_EVENTS.REMOVED_FROM_GROUP,{
+            conversationId
+        }
+    );
+
     res.json({
         success:true
     });
@@ -115,8 +150,10 @@ export async function leaveGroupController(
     req:Request,
     res:Response
 ){
+    const conversationId = req.params.conversationId;
+    const user = req.user?.id;
 
-    if(typeof req.params.conversationId !== "string"){
+    if(typeof conversationId !== "string"){
         return res.status(400).json({
             success:false,
             data:"Invalid conversation id"
@@ -125,9 +162,23 @@ export async function leaveGroupController(
 
 
     await leaveGroup(
-        req.params.conversationId,
+        conversationId,
         req.user!.id
     );
+
+    const io=getIO();
+
+
+    io.to(conversationId).emit(SOCKET_EVENTS.GROUP_MEMBER_LEFT,{
+            conversationId,
+            userId:req.user!.id
+        }
+    );
+
+    io.to(req.user!.id).emit(SOCKET_EVENTS.REMOVED_FROM_GROUP,{
+        conversationId
+        }
+    )
 
 
     res.json({
@@ -140,6 +191,8 @@ export async function promoteMemberController(
     req:Request,
     res:Response
 ){
+    const conversationId = req.params.conversationId;
+    const userId = req.user?.id;
 
     if(typeof req.params.conversationId !== "string"){
         return res.status(400).json({
@@ -164,6 +217,16 @@ export async function promoteMemberController(
             req.params.userId
         );
 
+    const io=getIO();
+
+
+    io.to(conversationId).emit(SOCKET_EVENTS.GROUP_ROLE_UPDATED,{
+            conversationId,
+            userId,
+            role:"ADMIN"
+        }
+    );
+
 
     res.json({
         success:true,
@@ -176,6 +239,8 @@ export async function demoteMemberController(
     req:Request,
     res:Response
 ){
+    const conversationId = req.params.conversationId;
+    const userId = req.user?.id;
 
     if(typeof req.params.conversationId !== "string"){
         return res.status(400).json({
@@ -199,6 +264,14 @@ export async function demoteMemberController(
             req.user!.id,
             req.params.userId
         );
+    const io = getIO();
+
+    io.to(conversationId).emit(SOCKET_EVENTS.GROUP_ROLE_UPDATED,{
+            conversationId,
+            userId,
+            role:"MEMBER"
+        }
+    );
 
 
     res.json({
