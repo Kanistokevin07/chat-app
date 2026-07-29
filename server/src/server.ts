@@ -7,7 +7,7 @@ import {startSessionCleanupJob} from "./jobs/cleanup-expired-sessions.js";
 import { createSocketServer } from "./sockets/socket.server.js";
 
 const server = http.createServer(app);
-startSessionCleanupJob();
+//startSessionCleanupJob();
 
 await createSocketServer(server);
 

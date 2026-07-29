@@ -199,6 +199,24 @@ export async function createGroupConversation(
             ...memberIds
         ])];
 
+    if(uniqueMembers.length < 2){
+        throw new AppError(
+            "Group must have at least one other member",
+            400,
+            "INVALID_GROUP"
+        );
+    }
+
+    const duplicateCreator = memberIds.includes(creatorId);
+
+    if(duplicateCreator){
+        throw new AppError(
+            "Creator cannot be added as member",
+            400,
+            "INVALID_MEMBER"
+        );
+    }
+
     const conversation = await prisma.conversation.create({
         data:{
             type:"GROUP",
@@ -233,6 +251,14 @@ export async function addGroupMember(
         throw new Error("ONly ADmin can add members");
     }
 
+    if(requesterId === newUserId){
+        throw new AppError(
+            "Cannot add yourself",
+            400,
+            "INVALID_MEMBER"
+        );
+    }
+
     const conversation = await prisma.conversation.findUnique(
         {
             where:{
@@ -258,6 +284,24 @@ export async function addGroupMember(
         }
     });
 
+    console.log(
+        "ADDING USER",
+        newUserId,
+        "TO CONVERSATION",
+        conversationId
+    );
+
+
+    const allMembers =
+        await prisma.conversationMember.findMany({
+            where:{
+                conversationId
+            }
+        });
+
+
+    console.log("BEFORE ADD", allMembers);
+
 
     if(existing){
 
@@ -277,7 +321,7 @@ export async function addGroupMember(
 
     }
 
-    return prisma.conversationMember.create({
+    const created = prisma.conversationMember.create({
         data:{
             conversationId,
             userId:newUserId,
@@ -287,6 +331,17 @@ export async function addGroupMember(
         }
     });
 
+    const after =
+    await prisma.conversationMember.findMany({
+        where:{
+            conversationId
+        }
+    });
+
+
+    console.log("AFTER ADD", after);
+
+    return created;
 }
 
 export async function removeGroupMember(

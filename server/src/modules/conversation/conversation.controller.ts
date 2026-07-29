@@ -46,8 +46,15 @@ export async function createGroupController(
     req: Request,
     res: Response
 ){
+
+
     const user = req.user!.id;
     const {name, members} = req.body;
+
+    console.log("AUTH USER OBJECT", req.user);
+
+     console.log("CREATOR:", user);
+    console.log("REQUEST MEMBERS:", members);
 
     const conversation = await createGroupConversation(user, name, members);
 

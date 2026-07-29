@@ -6,6 +6,7 @@ import { registerMessageHandlers } from "./handlers/message.handler.js";
 import { registerConversationHandlers } from "./handlers/conversation.handler.js";
 import { registerTypingHandlers } from "./handlers/typing.handler.js";
 import { registerPresenceHandlers } from "./handlers/presence.handler.js";
+import { registerGroupHandlers } from "./handlers/group.handler.js";
 import { setupSocketRedisAdapter } from "./socket.redis.js";
 import { SOCKET_EVENTS } from "./events.js";
 import { logger } from "@/config/logger.js";
@@ -82,7 +83,7 @@ export async function createSocketServer(
             registerMessageHandlers(io, socket);
             registerTypingHandlers(io, socket);
             registerPresenceHandlers(io, socket);
-
+            registerGroupHandlers(io, socket);
             
 
             io.emit(SOCKET_EVENTS.USER_ONLINE, { userId });
