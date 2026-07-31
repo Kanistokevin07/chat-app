@@ -1,6 +1,17 @@
 import axios from "axios";
 
-export const api = axios.create({
+const api = axios.create({
     baseURL: "http://localhost:3000/api",
     withCredentials: true
 });
+
+api.interceptors.response.use(response => response, async error => {
+    if(error.response?.status === 401){
+        // later refresh token logic
+        console.log("Unauthorized");
+    }
+
+    return Promise.reject(error);
+});
+
+export default api;
