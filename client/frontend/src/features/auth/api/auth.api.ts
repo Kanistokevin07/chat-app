@@ -24,7 +24,7 @@ export async function logout(){
 }
 
 export async function refreshSession(){
-    const response = await api.post<ApiResponse<String>>(
+    const response = await api.post<ApiResponse<AuthResponse>>(
         "/auth/refresh"
     );
 
